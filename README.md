@@ -98,7 +98,7 @@
 <h2 id="features">✦ 核心特性</h2>
 
 <p align="center">
-  <table>
+  <table align="center" style="border-collapse: collapse; margin: 0 auto;">
     <tr>
       <td align="center" width="200">
         <br/>
@@ -221,16 +221,46 @@
 
 ### 技术选型
 
-| 层级 | 技术 |
-|:---|:---|
-| **前端** | Next.js 14 (App Router) · React 18 · Tailwind CSS |
-| **状态管理** | Zustand (slice 模式) |
-| **数据层** | tRPC · SWR · Prisma |
-| **后端** | Next.js Route Handlers · 独立 Worker |
-| **消息队列** | BullMQ · Redis |
-| **数据库** | PostgreSQL 14+ · SQLite（开发） |
-| **对象存储** | S3 兼容（MinIO / R2 / AWS S3） |
-| **鉴权** | 自定义 Session · 密码哈希 |
+<p align="center">
+  <table align="center" style="border-collapse: collapse; width: 100%; max-width: 600px; margin: 0 auto;">
+    <tr>
+      <th style="border: 1px solid #e5e7eb; padding: 12px 18px; background: #f4f4f5; text-align: left; font-weight: 600; width: 120px;">层级</th>
+      <th style="border: 1px solid #e5e7eb; padding: 12px 18px; background: #f4f4f5; text-align: left; font-weight: 600;">技术</th>
+    </tr>
+    <tr>
+      <td style="border: 1px solid #e5e7eb; padding: 12px 18px; font-weight: 500;">前端</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px 18px;">Next.js 14 (App Router) · React 18 · Tailwind CSS</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid #e5e7eb; padding: 12px 18px; background: #fafafa; font-weight: 500;">状态管理</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px 18px; background: #fafafa;">Zustand (slice 模式)</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid #e5e7eb; padding: 12px 18px; font-weight: 500;">数据层</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px 18px;">tRPC · SWR · Prisma</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid #e5e7eb; padding: 12px 18px; background: #fafafa; font-weight: 500;">后端</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px 18px; background: #fafafa;">Next.js Route Handlers · 独立 Worker</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid #e5e7eb; padding: 12px 18px; font-weight: 500;">消息队列</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px 18px;">BullMQ · Redis</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid #e5e7eb; padding: 12px 18px; background: #fafafa; font-weight: 500;">数据库</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px 18px; background: #fafafa;">PostgreSQL 14+ · SQLite（开发）</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid #e5e7eb; padding: 12px 18px; font-weight: 500;">对象存储</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px 18px;">S3 兼容（MinIO / R2 / AWS S3）</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid #e5e7eb; padding: 12px 18px; background: #fafafa; font-weight: 500;">鉴权</td>
+      <td style="border: 1px solid #e5e7eb; padding: 12px 18px; background: #fafafa;">自定义 Session · 密码哈希</td>
+    </tr>
+  </table>
+</p>
 
 ### 任务状态机
 
