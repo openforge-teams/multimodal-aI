@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
-import { auth } from '@/lib/auth';
+import { getSession } from '@/lib/auth';
 import { getLLMRuntime } from '@dreamforge/providers';
 import type { ChatRequest } from '@dreamforge/types';
 
 export async function POST(req: Request) {
-  const session = await auth.api.getSession({ headers: req.headers });
+  // 验证会话
+  const session = await getSession();
   if (!session?.user?.id) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }

@@ -17,6 +17,7 @@ model User {
   email         String    @unique
   name          String?
   avatarUrl     String?
+  passwordHash  String?
   role          String    @default("USER")
   credits       Int       @default(0)
   createdAt     DateTime  @default(now())

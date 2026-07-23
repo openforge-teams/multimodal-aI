@@ -69,8 +69,8 @@ export async function destroySession(): Promise<void> {
   cookieStore.delete(SESSION_COOKIE);
 }
 
-export function setSessionCookie(token: string): void {
-  const cookieStore = cookies() as any;
+export async function setSessionCookie(token: string): Promise<void> {
+  const cookieStore = await cookies();
   cookieStore.set({
     name: SESSION_COOKIE,
     value: token,
@@ -83,20 +83,18 @@ export function setSessionCookie(token: string): void {
 }
 
 export async function signUp(email: string, password: string, name?: string): Promise<{ user: any; token: string }> {
-  // 简单的密码哈希（生产环境应使用 bcrypt/argon2）
-  const hashedPassword = hashToken(password + 'dreamforge_salt');
-
   const existing = await prisma.user.findUnique({ where: { email } });
   if (existing) {
     throw new Error('邮箱已注册');
   }
 
+  const hashedPassword = hashToken(password + 'dreamforge_salt');
+
   const user = await prisma.user.create({
     data: {
       email,
       name: name || email.split('@')[0],
-      // 存储密码哈希
-      // 注意：生产环境应使用专门的密码字段和加密
+      passwordHash: hashedPassword,
     },
   });
 
@@ -117,37 +115,23 @@ export async function signUp(email: string, password: string, name?: string): Pr
     });
   }
 
-  // 临时存储密码（简化版，生产环境应单独存密码表）
-  // 这里我们用一个简单的内存存储
-  passwordStore.set(user.id, hashedPassword);
-
   const token = await createSession(user.id);
   return { user, token };
 }
 
 export async function signIn(email: string, password: string): Promise<{ user: any; token: string }> {
   const user = await prisma.user.findUnique({ where: { email } });
-  if (!user) {
+  if (!user || !user.passwordHash) {
     throw new Error('邮箱或密码错误');
   }
 
   const hashedPassword = hashToken(password + 'dreamforge_salt');
-  const storedHash = passwordStore.get(user.id);
-
-  // 如果没有存储的密码（数据库迁移前），允许登录并存入
-  if (storedHash && storedHash !== hashedPassword) {
+  if (user.passwordHash !== hashedPassword) {
     throw new Error('邮箱或密码错误');
-  }
-
-  if (!storedHash) {
-    passwordStore.set(user.id, hashedPassword);
   }
 
   const token = await createSession(user.id);
   return { user, token };
 }
-
-// 简单的内存密码存储（仅开发环境，生产环境应使用数据库）
-const passwordStore = new Map<string, string>();
 
 export { SESSION_COOKIE };

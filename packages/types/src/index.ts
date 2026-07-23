@@ -126,6 +126,11 @@ export interface ChatCompletion {
   };
 }
 
+export interface FunctionCallRequest {
+  name: string;
+  arguments: Record<string, unknown>;
+}
+
 export interface FunctionCallResult {
   name: string;
   arguments: Record<string, unknown>;

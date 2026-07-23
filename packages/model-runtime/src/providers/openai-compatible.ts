@@ -129,10 +129,11 @@ export function createOpenAICompatibleRuntime(params: RuntimeParams): LLMRuntime
 
   async function functionCall(req: any): Promise<FunctionCallResult> {
     const result = await chatNonStreaming(req);
-    if (result.tool_calls && result.tool_calls.length > 0) {
+    const firstTool = result.tool_calls?.[0];
+    if (firstTool) {
       return {
-        name: result.tool_calls[0].name,
-        arguments: result.tool_calls[0].arguments,
+        name: firstTool.name,
+        arguments: firstTool.arguments,
       };
     }
     return {

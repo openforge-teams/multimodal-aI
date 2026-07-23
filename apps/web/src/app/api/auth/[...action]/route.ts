@@ -11,14 +11,14 @@ export async function POST(req: Request) {
       case 'sign-in': {
         const { email, password } = await req.json();
         const { user, token } = await signIn(email, password);
-        setSessionCookie(token);
+        await setSessionCookie(token);
         return NextResponse.json({ user: { id: user.id, email: user.email, name: user.name } });
       }
 
       case 'sign-up': {
         const { email, password, name } = await req.json();
         const { user, token } = await signUp(email, password, name);
-        setSessionCookie(token);
+        await setSessionCookie(token);
         return NextResponse.json({ user: { id: user.id, email: user.email, name: user.name } });
       }
 

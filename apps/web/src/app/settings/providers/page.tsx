@@ -294,9 +294,9 @@ function ProviderModal({
     e.preventDefault();
     const data = {
       ...formData,
-      llm_models: formData.llm_models.split(',').map((s) => s.trim()).filter(Boolean),
-      image_models: formData.image_models.split(',').map((s) => s.trim()).filter(Boolean),
-      video_models: formData.video_models.split(',').map((s) => s.trim()).filter(Boolean),
+      llm_models: formData.llm_models.split(',').map((s: string) => s.trim()).filter(Boolean),
+      image_models: formData.image_models.split(',').map((s: string) => s.trim()).filter(Boolean),
+      video_models: formData.video_models.split(',').map((s: string) => s.trim()).filter(Boolean),
     };
     onSubmit(data);
   }

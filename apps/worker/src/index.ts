@@ -1,10 +1,9 @@
 import 'dotenv/config';
-import { createWorker, createPollWorker, enqueuePollTask, type TaskPayload } from '@dreamforge/queue';
+import { createWorker, createPollWorker, enqueuePollTask, type TaskPayload, type Job } from '@dreamforge/queue';
 import { updateTaskStatus, getTask } from '@dreamforge/tasks';
 import { getImageRuntime, getVideoRuntime, getLLMRuntime } from '@dreamforge/providers';
 import { deductCredits, calculateCost } from '@dreamforge/billing';
 import { createAsset } from '@dreamforge/assets';
-import type { Job } from 'bullmq';
 import type {
   ImageRequest,
   VideoRequest,
@@ -192,7 +191,7 @@ async function handleImageResult(
   result: TaskHandle,
   request: Record<string, unknown>,
 ): Promise<void> {
-  const output = result.output as ImageOutput;
+  const output = result.output as unknown as ImageOutput;
   const images = output?.images || [];
 
   // 计算费用
@@ -244,7 +243,7 @@ async function handleVideoResult(
   result: TaskHandle,
   request: Record<string, unknown>,
 ): Promise<void> {
-  const output = result.output as VideoOutput;
+  const output = result.output as unknown as VideoOutput;
   const videos = output?.videos || [];
 
   // 计算费用
