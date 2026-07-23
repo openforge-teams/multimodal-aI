@@ -1,172 +1,191 @@
-# DreamForge - 类即梦多模态 AI 创作平台
+<div align="center">
 
-基于 LobeHub 式"任意 LLM 接入"的理念，向前再走一步——允许用户自由组合"任意文字 API + 任意图像 API + 任意视频 API"，构建一套像即梦一样支持文生图、图生图、文生视频、图生视频、首尾帧、智能画布的端到端创作平台。
+<br/>
 
-## 核心特性
+<a href="https://github.com/openforge-teams/multimodal-aI">
+  <img src="https://images.unsplash.com/photo-1677442136019-21780ecad995?w=800&q=80&auto=format&fit=crop" alt="DreamForge" width="120" style="border-radius: 24px; box-shadow: 0 8px 30px rgba(168, 85, 247, 0.35);"/>
+</a>
 
-- 🔓 **任意 Provider 接入** - 任何兼容 OpenAI 协议的 LLM、图像、视频 API 都能接入
-- 🎨 **多模态创作** - 文生图、图生图、文生视频、图生视频、首尾帧模式
-- 🧩 **流水线编排** - LLM 导演 + 图像生成 + 视频生成，可视化节点串起创作流程
-- 🖼️ **智能画布** - 消除笔、局部重绘、无损扩图、高清放大
-- 📦 **资产管理** - 版本谱系、可追溯、可复现、可计费
-- 🔒 **完全自托管** - 数据、模型、资产全部在你掌控中
+<br/>
+<br/>
 
-## 技术栈
+# **DreamForge**
 
-| 层 | 选型 |
-|---|---|
-| 前端 | Next.js 14 (App Router) + React 18 + Zustand |
-| 状态管理 | Zustand (slice 模式) |
-| 数据获取 | SWR + tRPC |
-| 后端 | Next.js Route Handlers + 独立 Worker |
-| 消息队列 | BullMQ + Redis |
-| 数据库 | PostgreSQL 14+ (Prisma) |
-| 对象存储 | S3 兼容 (MinIO/R2/AWS S3) |
-| 鉴权 | Better Auth |
+> **多模态 AI 创作平台 · 让创意自由流动**
 
-## 项目结构
+<p align="center">
+  <a href="#features">
+    <kbd>　核心特性　</kbd>
+  </a>
+  <a href="#tech-stack">
+    <kbd>　技术架构　</kbd>
+  </a>
+  <a href="#quick-start">
+    <kbd>　快速开始　</kbd>
+  </a>
+  <a href="#roadmap">
+    <kbd>　路线图　</kbd>
+  </a>
+</p>
 
-```
-dreamforge-ai/
-├── apps/
-│   ├── web/              # Next.js Web 应用
-│   │   └── src/
-│   │       ├── app/      # App Router 页面
-│   │       ├── components/
-│   │       ├── features/
-│   │       ├── lib/      # auth, trpc, utils
-│   │       ├── server/   # tRPC 路由
-│   │       └── stores/   # Zustand stores
-│   └── worker/           # 独立 Worker 服务（异步任务处理）
-├── packages/
-│   ├── db/               # Prisma 数据库层
-│   ├── types/            # 共享类型定义
-│   ├── model-runtime/    # LLM 运行时抽象
-│   ├── image-runtime/    # 图像生成运行时抽象
-│   ├── video-runtime/    # 视频生成运行时抽象
-│   ├── providers/        # 提供商管理服务
-│   ├── tasks/            # 任务服务
-│   ├── queue/            # 队列服务 (BullMQ)
-│   ├── billing/          # 计费与配额服务
-│   ├── assets/           # 资产管理服务
-│   └── storage/          # S3 存储服务
-├── docker-compose.yml    # 开发环境
-├── Dockerfile.web
-├── Dockerfile.worker
-└── .env.example
-```
+<br/>
 
-## 快速开始
+<p align="center">
+  <a href="https://github.com/openforge-teams/multimodal-aI/stargazers">
+    <img src="https://img.shields.io/github/stars/openforge-teams/multimodal-aI?style=for-the-badge&logo=starship&color=C9CBFF&logoColor=D9E0EE&labelColor=302D41"/>
+  </a>
+  <a href="https://github.com/openforge-teams/multimodal-aI/issues">
+    <img src="https://img.shields.io/github/issues/openforge-teams/multimodal-aI?style=for-the-badge&logo=gitbook&color=B5E8E0&logoColor=D9E0EE&labelColor=302D41"/>
+  </a>
+  <a href="https://github.com/openforge-teams/multimodal-aI">
+    <img src="https://img.shields.io/github/languages/top/openforge-teams/multimodal-aI?style=for-the-badge&logo=typescript&color=F5C2E7&logoColor=D9E0EE&labelColor=302D41"/>
+  </a>
+  <a href="./LICENSE">
+    <img src="https://img.shields.io/github/license/openforge-teams/multimodal-aI?style=for-the-badge&logo=opensourceinitiative&color=98D8E8&logoColor=D9E0EE&labelColor=302D41"/>
+  </a>
+</p>
 
-### 1. 使用 Docker Compose（推荐）
+<br/>
 
-```bash
-# 复制环境变量
-cp .env.example .env
+</div>
 
-# 启动所有服务
-docker compose up -d
+---
 
-# 初始化数据库
-docker compose exec web pnpm db:push
+<br/>
 
-# 打开应用
-# http://localhost:3000
-```
+## ✦ 项目愿景
 
-### 2. 本地开发
+> 基于 **LobeHub** 式"任意 LLM 接入"的理念，向前再走一步 ——
+> 允许用户自由组合 **任意文字 API + 任意图像 API + 任意视频 API**，
+> 构建一套像即梦一样支持文生图、图生图、文生视频、图生视频、首尾帧、智能画布的 **端到端创作平台**。
 
-```bash
-# 安装依赖
-pnpm install
+<br/>
 
-# 复制环境变量
-cp .env.example .env
-# 编辑 .env 配置数据库、Redis、S3 等
+<h2 id="features">✦ 核心特性</h2>
 
-# 启动依赖服务（PostgreSQL, Redis, MinIO）
-docker compose up postgres redis minio -d
+<p align="center">
+  <table>
+    <tr>
+      <td align="center" width="200">
+        <br/>
+        <div align="center">
+          <img width="48" src="https://api.iconify.design/lucide/unlock.svg?color=%23a855f7" alt=""/>
+        </div>
+        <br/>
+        <b>任意 Provider 接入</b>
+        <p align="center">
+          <sub>
+            任何兼容 OpenAI 协议的<br/>LLM、图像、视频 API 都能接入
+          </sub>
+        </p>
+      </td>
+      <td align="center" width="200">
+        <br/>
+        <div align="center">
+          <img width="48" src="https://api.iconify.design/lucide/palette.svg?color=%23ec4899" alt=""/>
+        </div>
+        <br/>
+        <b>多模态创作</b>
+        <p align="center">
+          <sub>
+            文生图 · 图生图<br/>文生视频 · 图生视频 · 首尾帧
+          </sub>
+        </p>
+      </td>
+      <td align="center" width="200">
+        <br/>
+        <div align="center">
+          <img width="48" src="https://api.iconify.design/lucide/workflow.svg?color=%2306b6d4" alt=""/>
+        </div>
+        <br/>
+        <b>流水线编排</b>
+        <p align="center">
+          <sub>
+            LLM 导演 + 图像 + 视频<br/>可视化节点串起创作流程
+          </sub>
+        </p>
+      </td>
+    </tr>
+    <tr>
+      <td align="center" width="200">
+        <br/>
+        <div align="center">
+          <img width="48" src="https://api.iconify.design/lucide/frame.svg?color=%23f59e0b" alt=""/>
+        </div>
+        <br/>
+        <b>智能画布</b>
+        <p align="center">
+          <sub>
+            消除笔 · 局部重绘<br/>无损扩图 · 高清放大
+          </sub>
+        </p>
+      </td>
+      <td align="center" width="200">
+        <br/>
+        <div align="center">
+          <img width="48" src="https://api.iconify.design/lucide/package.svg?color=%2310b981" alt=""/>
+        </div>
+        <br/>
+        <b>资产管理</b>
+        <p align="center">
+          <sub>
+            版本谱系 · 可追溯<br/>可复现 · 可计费
+          </sub>
+        </p>
+      </td>
+      <td align="center" width="200">
+        <br/>
+        <div align="center">
+          <img width="48" src="https://api.iconify.design/lucide/shield-check.svg?color=%238b5cf6" alt=""/>
+        </div>
+        <br/>
+        <b>完全自托管</b>
+        <p align="center">
+          <sub>
+            数据 · 模型 · 资产<br/>全部在你掌控中
+          </sub>
+        </p>
+      </td>
+    </tr>
+  </table>
+</p>
 
-# 初始化数据库
-pnpm db:generate
-pnpm db:push
+<br/>
 
-# 启动 Web 服务
-pnpm dev
-
-# 另开终端启动 Worker
-pnpm dev:worker
-```
-
-## 配置提供商
-
-1. 登录后进入 **设置 → 提供商管理**
-2. 点击"添加提供商"
-3. 填写提供商信息：
-   - **ID**: 唯一标识（如 `my-sd-cluster`）
-   - **Base URL**: 提供商 API 端点
-   - **协议**: OpenAI 兼容 / Apimart / 原生
-   - **API Key**: 你的密钥
-   - **模型列表**: 逗号分隔（如 `flux-2, sd-xl, kolors`）
-4. 保存后即可在创作工作台使用
-
-### 支持的提供商类型
-
-任何兼容以下协议的服务都能接入：
-
-- **OpenAI 兼容协议** - 大多数 AI API 都兼容（OpenAI、Together、Groq、Replicate、自建 SD/FLUX 等）
-- **Apimart 协议**
-- **原生协议**（通过扩展适配）
-
-## 核心模块
-
-### 文生图
-- 提示词 + LLM 智能润色
-- 画面比例、画质、生成数量控制
-- 种子（Seed）精确复现
-- 负面提示词
-
-### 图生图
-- 参考图上传
-- 重绘强度控制（0-1）
-- 多图融合（最多 9 张）
-
-### 视频生成
-- 文生视频 / 图生视频
-- 时长、分辨率、运镜方式控制
-- 首尾帧精确控制
-- 运动强度调节
-
-### 工作流编排
-- 可视化节点编辑器
-- LLM 导演生成结构化 Brief
-- 多步骤自动执行
-- 节点间资产传递
-
-## 架构设计
+<h2 id="tech-stack">✦ 技术架构</h2>
 
 ### 六层架构
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│  Frontend Layer  │  Next.js RSC + SPA 混合 + Canvas 编辑器 │
-├─────────────────────────────────────────────────────────┤
-│  API Gateway     │  RESTful（流式/文件）+ tRPC（业务）      │
-├─────────────────────────────────────────────────────────┤
-│  Orchestration   │  创作流水线引擎 / 智能体编排             │
-├─────────────────────────────────────────────────────────┤
-│  Multi-Provider Abstraction │  LLM + Image + Video 适配层  │
-├─────────────────────────────────────────────────────────┤
-│  Async Task Fabric │  队列 + 状态机 + 轮询/回调/Webhook    │
-├─────────────────────────────────────────────────────────┤
-│  Infra & Storage │  PostgreSQL + Redis + S3(MinIO)       │
-└─────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│   Frontend Layer   │   Next.js RSC + SPA 混合 + Canvas 编辑器    │
+├─────────────────────────────────────────────────────────────────┤
+│   API Gateway      │   RESTful（流式/文件）+ tRPC（业务）         │
+├─────────────────────────────────────────────────────────────────┤
+│   Orchestration    │   创作流水线引擎 / 智能体编排                  │
+├─────────────────────────────────────────────────────────────────┤
+│   Multi-Provider   │   LLM + Image + Video 统一适配层             │
+│   Abstraction      │                                               │
+├─────────────────────────────────────────────────────────────────┤
+│   Async Task       │   队列 + 状态机 + 轮询 / 回调 / Webhook      │
+│   Fabric           │                                               │
+├─────────────────────────────────────────────────────────────────┤
+│   Infra & Storage  │   PostgreSQL + Redis + S3 (MinIO/R2)       │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
-### 混合抽象设计
+### 技术选型
 
-- **通用字段**（prompt、model、aspect_ratio、strength）走统一接口
-- **提供商特有字段**通过 `vendor_params` 透传至原生 provider
+| 层级 | 技术 |
+|:---|:---|
+| **前端** | Next.js 14 (App Router) · React 18 · Tailwind CSS |
+| **状态管理** | Zustand (slice 模式) |
+| **数据层** | tRPC · SWR · Prisma |
+| **后端** | Next.js Route Handlers · 独立 Worker |
+| **消息队列** | BullMQ · Redis |
+| **数据库** | PostgreSQL 14+ · SQLite（开发） |
+| **对象存储** | S3 兼容（MinIO / R2 / AWS S3） |
+| **鉴权** | 自定义 Session · 密码哈希 |
 
 ### 任务状态机
 
@@ -178,30 +197,162 @@ created → queued → running → succeeded
                         retrying
 ```
 
-## 部署
+<br/>
 
-### 生产环境建议
+## ✦ 项目结构
 
-- **Web 服务**: 独立部署（Vercel / Docker / K8s）
-- **Worker 服务**: 独立部署，支持水平扩展（K8s HPA）
-- **PostgreSQL**: 托管服务（Supabase / Neon / AWS RDS）
-- **Redis**: 托管服务（Upstash / Redis Cloud）
-- **S3 存储**: Cloudflare R2 / AWS S3 / 自建 MinIO
+```
+dreamforge-ai/
+├── apps/
+│   ├── web/                 # Next.js Web 应用
+│   │   └── src/
+│   │       ├── app/         # App Router 页面
+│   │       ├── components/  # UI 组件
+│   │       ├── lib/         # auth · trpc · utils
+│   │       ├── server/      # tRPC 路由
+│   │       └── stores/      # Zustand stores
+│   └── worker/              # 独立 Worker 服务（异步任务）
+├── packages/
+│   ├── db/                  # Prisma 数据库层
+│   ├── types/               # 共享类型定义
+│   ├── llm-runtime/         # LLM 运行时抽象
+│   ├── image-runtime/       # 图像生成运行时
+│   ├── video-runtime/       # 视频生成运行时
+│   ├── providers/           # 提供商管理
+│   ├── tasks/               # 任务服务
+│   ├── queue/               # 队列服务
+│   ├── billing/             # 计费与配额
+│   ├── assets/              # 资产管理
+│   └── storage/             # 存储服务
+├── docker-compose.yml
+└── .env.example
+```
 
-### 环境变量
+<br/>
 
-参见 `.env.example` 文件，所有配置项都有详细说明。
+<h2 id="quick-start">✦ 快速开始</h2>
 
-## 开发路线图
+### 方式一：本地开发（最简）
 
-- ✅ **Phase 1**: 项目脚手架 + 鉴权 + LLM 抽象层 + 提供商管理 UI
-- ✅ **Phase 2**: Image Provider 抽象层 + 任务队列 + 文生图/图生图 UI + 资产库
-- ✅ **Phase 3**: Video Provider 抽象层 + 文生视频/图生视频 UI
-- 🚧 **Phase 4**: 流水线编排 + Brief 结构化生成
-- 🚧 **Phase 5**: 智能画布（Canvas 编辑器）
-- 🚧 **Phase 6**: 计费系统 + 订阅套餐 + 内容审核
-- 🚧 **Phase 7**: 企业级特性（多租户、区域路由、开放 API）
+```bash
+# 1. 克隆项目
+git clone https://github.com/openforge-teams/multimodal-aI.git
+cd multimodal-aI
 
-## License
+# 2. 安装依赖
+pnpm install
 
-MIT
+# 3. 初始化数据库（SQLite）
+cp .env packages/db/.env
+pnpm db:generate
+pnpm db:push
+
+# 4. 启动开发服务器
+pnpm dev
+```
+
+> 打开 **http://localhost:3000** 开始使用
+
+### 方式二：Docker Compose（生产推荐）
+
+```bash
+# 复制环境变量
+cp .env.example .env
+
+# 启动所有服务
+docker compose up -d
+
+# 初始化数据库
+docker compose exec web pnpm db:push
+```
+
+<br/>
+
+## ✦ 配置提供商
+
+1. 登录后进入 **设置 → 提供商管理**
+2. 点击 **添加提供商**
+3. 填写信息：
+
+| 字段 | 说明 | 示例 |
+|:---|:---|:---|
+| **ID** | 唯一标识 | `my-sd-cluster` |
+| **Base URL** | API 端点 | `https://api.example.com/v1` |
+| **协议** | OpenAI 兼容 / Apimart / 原生 | `openai` |
+| **API Key** | 你的密钥 | `sk-xxxxxxxx` |
+| **模型列表** | 逗号分隔 | `flux-2, sd-xl, kolors` |
+
+4. 保存后即可在 **创作工作台** 使用
+
+### 支持的提供商
+
+任何兼容以下协议的服务都能接入：
+
+- 　<a href="#"><kbd>OpenAI 兼容</kbd></a>　— 大多数 AI API（OpenAI、Together、Groq、Replicate、自建 SD/FLUX 等）
+- 　<a href="#"><kbd>Apimart 协议</kbd></a>
+- 　<a href="#"><kbd>原生协议</kbd></a>　— 通过扩展适配
+
+<br/>
+
+## ✦ 核心模块
+
+### 🎨 文生图
+> 提示词 + LLM 智能润色 · 画面比例 · 画质 · 数量控制 · Seed 精确复现 · 负面提示词
+
+### 🖼️ 图生图
+> 参考图上传 · 重绘强度控制（0-1）· 多图融合（最多 9 张）
+
+### 🎬 视频生成
+> 文生视频 / 图生视频 · 时长 · 分辨率 · 运镜方式 · 首尾帧精确控制 · 运动强度
+
+### 🔗 工作流编排
+> 可视化节点编辑器 · LLM 导演生成结构化 Brief · 多步骤自动执行 · 节点间资产传递
+
+<br/>
+
+<h2 id="roadmap">✦ 开发路线图</h2>
+
+| 阶段 | 状态 | 内容 |
+|:---|:---:|:---|
+| **Phase 1** | ✅ 完成 | 项目脚手架 · 鉴权 · LLM 抽象层 · 提供商管理 UI |
+| **Phase 2** | ✅ 完成 | Image Provider 抽象层 · 任务队列 · 文生图/图生图 UI · 资产库 |
+| **Phase 3** | ✅ 完成 | Video Provider 抽象层 · 文生视频/图生视频 UI |
+| **Phase 4** | 🚧 进行中 | 流水线编排 · Brief 结构化生成 |
+| **Phase 5** | 📋 规划中 | 智能画布（Canvas 编辑器） |
+| **Phase 6** | 📋 规划中 | 计费系统 · 订阅套餐 · 内容审核 |
+| **Phase 7** | 📋 规划中 | 企业级特性（多租户 · 区域路由 · 开放 API） |
+
+<br/>
+
+## ✦ 部署建议
+
+| 组件 | 推荐方案 |
+|:---|:---|
+| **Web 服务** | Vercel · Docker · Kubernetes |
+| **Worker 服务** | 独立部署 · 支持水平扩展（K8s HPA） |
+| **PostgreSQL** | Supabase · Neon · AWS RDS |
+| **Redis** | Upstash · Redis Cloud |
+| **S3 存储** | Cloudflare R2 · AWS S3 · 自建 MinIO |
+
+<br/>
+
+---
+
+<br/>
+
+<div align="center">
+
+**Made with ❤️ by DreamForge Team**
+
+<br/>
+
+<a href="https://github.com/openforge-teams/multimodal-aI">
+  <img src="https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white" alt="GitHub"/>
+</a>
+
+<br/>
+<br/>
+
+<sub>© 2026 DreamForge. Released under the MIT License.</sub>
+
+</div>
