@@ -53,6 +53,40 @@
 
 <br/>
 
+## ✦ 产品预览
+
+<p align="center">
+  <img src="./public/screenshots/homepage.png" alt="首页" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); margin-bottom: 20px;"/>
+</p>
+
+<p align="center"><sub>　<b>首页</b> · 品牌落地与核心价值传达　</sub></p>
+
+<br/>
+
+<p align="center">
+  <img src="./public/screenshots/studio.png" alt="创作工作台" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); margin-bottom: 20px;"/>
+</p>
+
+<p align="center"><sub>　<b>创作工作台</b> · 统一入口，快速开始多模态创作　</sub></p>
+
+<br/>
+
+<p align="center">
+  <img src="./public/screenshots/image-generation.png" alt="文生图" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); margin-bottom: 20px;"/>
+</p>
+
+<p align="center"><sub>　<b>文生图工作台</b> · 提示词润色、多参数控制、批量生成　</sub></p>
+
+<br/>
+
+<p align="center">
+  <img src="./public/screenshots/providers.png" alt="提供商管理" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); margin-bottom: 20px;"/>
+</p>
+
+<p align="center"><sub>　<b>提供商管理</b> · 一键接入任意 LLM / 图像 / 视频 API　</sub></p>
+
+<br/>
+
 ## ✦ 项目愿景
 
 > 基于 **LobeHub** 式"任意 LLM 接入"的理念，向前再走一步 ——
