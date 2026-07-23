@@ -1,0 +1,22 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# 安装 pnpm
+RUN npm install -g pnpm@9
+
+# 复制 package 文件
+COPY package.json pnpm-workspace.yaml ./
+COPY packages/*/package.json ./packages/
+COPY apps/*/package.json ./apps/
+
+# 安装依赖
+RUN pnpm install --frozen-lockfile || pnpm install
+
+# 复制源码
+COPY . .
+
+# 生成 Prisma Client
+RUN pnpm db:generate
+
+CMD ["pnpm", "--filter", "worker", "start"]

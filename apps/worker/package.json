@@ -1,0 +1,26 @@
+{
+  "name": "worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@dreamforge/db": "workspace:*",
+    "@dreamforge/types": "workspace:*",
+    "@dreamforge/providers": "workspace:*",
+    "@dreamforge/tasks": "workspace:*",
+    "@dreamforge/queue": "workspace:*",
+    "@dreamforge/billing": "workspace:*",
+    "@dreamforge/assets": "workspace:*",
+    "@dreamforge/storage": "workspace:*",
+    "dotenv": "^16.4.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0",
+    "tsx": "^4.7.0"
+  }
+}

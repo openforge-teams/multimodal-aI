@@ -1,0 +1,316 @@
+// Prisma Schema for DreamForge AI Platform
+// PostgreSQL 14+
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============ 用户与鉴权 ============
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  avatarUrl     String?
+  role          UserRole  @default(USER)
+  credits       Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // 关系
+  sessions      Session[]
+  apiKeys       ApiKey[]
+  providers     UserProvider[]
+  tasks         Task[]
+  assets        Asset[]
+  workflows     Workflow[]
+  auditLogs     AuditLog[]
+
+  @@map("users")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  userId       String
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model ApiKey {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String
+  keyHash     String   @unique
+  prefix      String
+  lastUsedAt  DateTime?
+  createdAt   DateTime @default(now())
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("api_keys")
+}
+
+// ============ 提供商配置 ============
+
+model UserProvider {
+  id             String   @id @default(cuid())
+  userId         String
+  providerId     String   // 唯一标识，如 "my-sd-cluster"
+  name           String
+  baseUrl        String
+  protocol       ProviderProtocol
+  enabled        Boolean  @default(true)
+  isPrimary      Boolean  @default(false)
+  llmModels      String[] @default([])
+  imageModels    String[] @default([])
+  videoModels    String[] @default([])
+  capabilities   Json     @default("{}")
+  rateLimitRpm   Int      @default(60)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  apiKey         ProviderApiKey?
+
+  @@unique([userId, providerId])
+  @@map("user_providers")
+}
+
+enum ProviderProtocol {
+  openai
+  apimart
+  native
+}
+
+model ProviderApiKey {
+  id             String       @id @default(cuid())
+  userProviderId String       @unique
+  encryptedKey   String
+  createdAt      DateTime     @default(now())
+
+  userProvider   UserProvider @relation(fields: [userProviderId], references: [id], onDelete: Cascade)
+
+  @@map("provider_api_keys")
+}
+
+// ============ 任务系统 ============
+
+model Task {
+  id             String        @id @default(cuid())
+  userId         String
+  provider       String
+  model          String
+  modality       TaskModality
+  status         TaskStatus    @default(created)
+  input          Json          @default("{}")
+  output         Json?
+  creditsCost    Int           @default(0)
+  startedAt      DateTime?
+  finishedAt     DateTime?
+  errorCode      String?
+  errorMessage   String?
+  retryable      Boolean?
+  retryCount     Int           @default(0)
+  parentTaskId   String?
+  workflowNodeId String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assets         Asset[]
+  parentTask     Task?         @relation("TaskHierarchy", fields: [parentTaskId], references: [id])
+  childTasks     Task[]        @relation("TaskHierarchy")
+
+  @@index([userId, status])
+  @@index([status])
+  @@map("tasks")
+}
+
+enum TaskModality {
+  llm
+  image
+  video
+}
+
+enum TaskStatus {
+  created
+  queued
+  running
+  succeeded
+  failed
+  retrying
+  cancelled
+}
+
+// ============ 资产系统 ============
+
+model Asset {
+  id            String     @id @default(cuid())
+  userId        String
+  type          AssetType
+  url           String
+  thumbnail     String?
+  parentId      String?
+  taskId        String
+  provider      String
+  model         String
+  prompt        String     @default("")
+  params        Json       @default("{}")
+  seed          Int?
+  creditsCost   Int        @default(0)
+  rootAssetId   String?
+  version       Int        @default(1)
+  tags          String[]   @default([])
+  isPublic      Boolean    @default(false)
+  createdAt     DateTime   @default(now())
+
+  user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  task          Task       @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  parent        Asset?     @relation("AssetVersionChain", fields: [parentId], references: [id])
+  children      Asset[]    @relation("AssetVersionChain")
+  rootAsset     Asset?     @relation("AssetRootChain", fields: [rootAssetId], references: [id])
+  rootChildren  Asset[]    @relation("AssetRootChain")
+
+  @@index([userId, type])
+  @@index([rootAssetId])
+  @@map("assets")
+}
+
+enum AssetType {
+  image
+  video
+}
+
+// ============ 工作流系统 ============
+
+model Workflow {
+  id          String        @id @default(cuid())
+  userId      String
+  name        String
+  description String?
+  definition  Json          @default("{}")
+  isTemplate  Boolean       @default(false)
+  isPublic    Boolean       @default(false)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  executions  WorkflowExecution[]
+
+  @@map("workflows")
+}
+
+model WorkflowExecution {
+  id          String     @id @default(cuid())
+  workflowId  String
+  userId      String
+  status      TaskStatus @default(created)
+  input       Json       @default("{}")
+  output      Json?
+  startedAt   DateTime?
+  finishedAt  DateTime?
+  createdAt   DateTime   @default(now())
+
+  workflow    Workflow   @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@map("workflow_executions")
+}
+
+// ============ 计费系统 ============
+
+model CreditTransaction {
+  id          String              @id @default(cuid())
+  userId      String
+  amount      Int
+  type        CreditTransactionType
+  description String?
+  taskId      String?
+  createdAt   DateTime            @default(now())
+
+  @@index([userId])
+  @@map("credit_transactions")
+}
+
+enum CreditTransactionType {
+  topup
+  usage
+  refund
+  subscription
+}
+
+model ModelPricing {
+  id           String       @id @default(cuid())
+  provider     String
+  model        String
+  modality     TaskModality
+  pricingType  PricingType  @default(fixed)
+  unitCost     Int          @default(0)
+  tiers        Json?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@unique([provider, model])
+  @@map("model_pricings")
+}
+
+enum PricingType {
+  fixed
+  tiered
+  lookup
+}
+
+// ============ 审计日志 ============
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String
+  action    String
+  resource  String?
+  metadata  Json     @default("{}")
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("audit_logs")
+}
+
+// ============ 内容审核 ============
+
+model ContentModeration {
+  id          String                @id @default(cuid())
+  assetId     String                @unique
+  status      ModerationStatus
+  flagged     Boolean               @default(false)
+  categories  String[]              @default([])
+  confidence  Float?
+  metadata    Json                  @default("{}")
+  reviewedBy  String?
+  reviewedAt  DateTime?
+  createdAt   DateTime              @default(now())
+
+  @@map("content_moderations")
+}
+
+enum ModerationStatus {
+  pending
+  approved
+  rejected
+  flagged
+}

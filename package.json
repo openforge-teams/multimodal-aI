@@ -1,0 +1,28 @@
+{
+  "name": "dreamforge-ai",
+  "private": true,
+  "version": "0.1.0",
+  "description": "DreamForge - 类即梦多模态 AI 创作平台",
+  "packageManager": "pnpm@9.0.0",
+  "engines": {
+    "node": ">=18.17.0"
+  },
+  "scripts": {
+    "build": "pnpm -r --filter \"./packages/*\" build",
+    "dev": "pnpm --filter web dev",
+    "dev:worker": "pnpm --filter worker dev",
+    "dev:all": "concurrently \"pnpm dev\" \"pnpm dev:worker\"",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
+    "db:generate": "pnpm --filter @dreamforge/db prisma generate",
+    "db:push": "pnpm --filter @dreamforge/db prisma db push",
+    "db:migrate": "pnpm --filter @dreamforge/db prisma migrate dev",
+    "db:studio": "pnpm --filter @dreamforge/db prisma studio",
+    "clean": "pnpm -r exec rm -rf dist .next node_modules"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "concurrently": "^8.2.2",
+    "typescript": "^5.4.0"
+  }
+}
