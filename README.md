@@ -190,23 +190,34 @@
 
 ### 六层架构
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│   Frontend Layer   │   Next.js RSC + SPA 混合 + Canvas 编辑器    │
-├─────────────────────────────────────────────────────────────────┤
-│   API Gateway      │   RESTful（流式/文件）+ tRPC（业务）         │
-├─────────────────────────────────────────────────────────────────┤
-│   Orchestration    │   创作流水线引擎 / 智能体编排                  │
-├─────────────────────────────────────────────────────────────────┤
-│   Multi-Provider   │   LLM + Image + Video 统一适配层             │
-│   Abstraction      │                                               │
-├─────────────────────────────────────────────────────────────────┤
-│   Async Task       │   队列 + 状态机 + 轮询 / 回调 / Webhook      │
-│   Fabric           │                                               │
-├─────────────────────────────────────────────────────────────────┤
-│   Infra & Storage  │   PostgreSQL + Redis + S3 (MinIO/R2)       │
-└─────────────────────────────────────────────────────────────────┘
-```
+<p align="center">
+  <table align="center" style="border-collapse: collapse; width: 100%; max-width: 700px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+    <tr>
+      <td style="border: 1px solid #e5e7eb; padding: 14px 20px; background: #fafafa; font-weight: 600; width: 180px; color: #6b7280;">Frontend Layer</td>
+      <td style="border: 1px solid #e5e7eb; padding: 14px 20px; background: #fafafa;">Next.js RSC + SPA 混合 + Canvas 编辑器</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid #e5e7eb; padding: 14px 20px; background: #f4f4f5; font-weight: 600; color: #6b7280;">API Gateway</td>
+      <td style="border: 1px solid #e5e7eb; padding: 14px 20px; background: #f4f4f5;">RESTful（流式/文件）+ tRPC（业务）</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid #e5e7eb; padding: 14px 20px; background: #fafafa; font-weight: 600; color: #6b7280;">Orchestration</td>
+      <td style="border: 1px solid #e5e7eb; padding: 14px 20px; background: #fafafa;">创作流水线引擎 / 智能体编排</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid #e5e7eb; padding: 14px 20px; background: #f4f4f5; font-weight: 600; color: #6b7280;">Multi-Provider<br/>Abstraction</td>
+      <td style="border: 1px solid #e5e7eb; padding: 14px 20px; background: #f4f4f5;">LLM + Image + Video 统一适配层</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid #e5e7eb; padding: 14px 20px; background: #fafafa; font-weight: 600; color: #6b7280;">Async Task<br/>Fabric</td>
+      <td style="border: 1px solid #e5e7eb; padding: 14px 20px; background: #fafafa;">队列 + 状态机 + 轮询 / 回调 / Webhook</td>
+    </tr>
+    <tr>
+      <td style="border: 1px solid #e5e7eb; padding: 14px 20px; background: #f4f4f5; font-weight: 600; color: #6b7280;">Infra &amp; Storage</td>
+      <td style="border: 1px solid #e5e7eb; padding: 14px 20px; background: #f4f4f5;">PostgreSQL + Redis + S3 (MinIO/R2)</td>
+    </tr>
+  </table>
+</p>
 
 ### 技术选型
 
@@ -223,13 +234,21 @@
 
 ### 任务状态机
 
-```
-created → queued → running → succeeded
-                           ↓
-                         failed
-                           ↓
-                        retrying
-```
+<p align="center">
+  <code style="background: #f4f4f5; padding: 4px 10px; border-radius: 6px; color: #374151;">created</code>
+  <span style="color: #9ca3af; margin: 0 4px;">→</span>
+  <code style="background: #f4f4f5; padding: 4px 10px; border-radius: 6px; color: #374151;">queued</code>
+  <span style="color: #9ca3af; margin: 0 4px;">→</span>
+  <code style="background: #f4f4f5; padding: 4px 10px; border-radius: 6px; color: #374151;">running</code>
+  <span style="color: #9ca3af; margin: 0 4px;">→</span>
+  <code style="background: #dcfce7; padding: 4px 10px; border-radius: 6px; color: #166534;">succeeded</code>
+</p>
+
+<p align="center" style="margin-top: 8px;">
+  <code style="background: #fee2e2; padding: 4px 10px; border-radius: 6px; color: #991b1b;">failed</code>
+  <span style="color: #9ca3af; margin: 0 4px;">→</span>
+  <code style="background: #fef3c7; padding: 4px 10px; border-radius: 6px; color: #92400e;">retrying</code>
+</p>
 
 <br/>
 
