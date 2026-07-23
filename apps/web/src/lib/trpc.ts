@@ -1,14 +1,11 @@
 import { initTRPC, TRPCError } from '@trpc/server';
-import superjson from 'superjson';
 import { ZodError } from 'zod';
-import { auth } from './auth';
-import { cookies, headers } from 'next/headers';
+import { getSession } from './auth';
 
 /**
- * tRPC 初始化
+ * tRPC 初始化 (v10)
  */
-const t = initTRPC.create({
-  transformer: superjson,
+const t = initTRPC.context<Context>().create({
   errorFormatter({ shape, error }) {
     return {
       ...shape,
@@ -21,23 +18,16 @@ const t = initTRPC.create({
   },
 });
 
-/**
- * 创建调用上下文
- */
-export async function createTRPCContext() {
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
+export type Context = {
+  user?: { id: string; email: string; name: string | null };
+};
 
+export async function createTRPCContext(): Promise<Context> {
+  const session = await getSession();
   return {
     user: session?.user,
-    session,
-    headers: await headers(),
-    cookies: await cookies(),
   };
 }
-
-export type Context = Awaited<ReturnType<typeof createTRPCContext>>;
 
 /**
  * 中间件
@@ -59,3 +49,4 @@ const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
 export const createTRPCRouter = t.router;
 export const publicProcedure = t.procedure;
 export const protectedProcedure = t.procedure.use(enforceUserIsAuthed);
+export const mergeRouters = t.mergeRouters;

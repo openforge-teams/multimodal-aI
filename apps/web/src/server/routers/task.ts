@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { createTRPCRouter, protectedProcedure, publicProcedure } from '../trpc';
+import { createTRPCRouter, protectedProcedure, publicProcedure } from '../../lib/trpc';
 import { createTask, getTask, getTasks, cancelTask, updateTaskStatus } from '@dreamforge/tasks';
 import { enqueueTask } from '@dreamforge/queue';
 import { canAfford, calculateCost, getBalance, getUsage } from '@dreamforge/billing';

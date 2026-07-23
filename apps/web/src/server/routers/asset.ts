@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { createTRPCRouter, protectedProcedure } from '../trpc';
+import { createTRPCRouter, protectedProcedure } from '../../lib/trpc';
 import { getAsset, getAssets, deleteAsset, getVersionHistory, updateAsset } from '@dreamforge/assets';
 import { prisma } from '@dreamforge/db';
 

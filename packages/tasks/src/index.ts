@@ -1,5 +1,23 @@
-import { prisma, type Task, type TaskStatus, type TaskModality } from '@dreamforge/db';
+import { prisma } from '@dreamforge/db';
 import type { TaskHandle } from '@dreamforge/types';
+
+// 安全 JSON 解析
+function safeParse<T = any>(value: string | null | undefined, fallback: T): T {
+  if (!value) return fallback;
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    return fallback;
+  }
+}
+
+function safeStringify(value: any): string {
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return '{}';
+  }
+}
 
 export {
   createTask,
@@ -8,19 +26,18 @@ export {
   getTask,
   getTasks,
   cancelTask,
-  taskHandleToDb,
   dbToTaskHandle,
 };
 
-function dbToTaskHandle(db: Task): TaskHandle {
+function dbToTaskHandle(db: any): TaskHandle {
   return {
     task_id: db.id,
     provider: db.provider,
     model: db.model,
     modality: db.modality as TaskHandle['modality'],
     status: db.status as TaskHandle['status'],
-    input: (db.input as Record<string, unknown>) || {},
-    output: db.output ? (db.output as Record<string, unknown>) : undefined,
+    input: safeParse(db.input, {}),
+    output: db.output ? safeParse(db.output, undefined) : undefined,
     metadata: {
       credits_cost: db.creditsCost,
       started_at: db.startedAt?.toISOString(),
@@ -36,29 +53,11 @@ function dbToTaskHandle(db: Task): TaskHandle {
   };
 }
 
-function taskHandleToDb(handle: TaskHandle): Partial<Task> {
-  return {
-    id: handle.task_id,
-    provider: handle.provider,
-    model: handle.model,
-    modality: handle.modality as TaskModality,
-    status: handle.status as TaskStatus,
-    input: handle.input as any,
-    output: handle.output as any,
-    creditsCost: handle.metadata.credits_cost,
-    startedAt: handle.metadata.started_at ? new Date(handle.metadata.started_at) : undefined,
-    finishedAt: handle.metadata.finished_at ? new Date(handle.metadata.finished_at) : undefined,
-    errorCode: handle.error?.code,
-    errorMessage: handle.error?.message,
-    retryable: handle.error?.retryable,
-  };
-}
-
 interface CreateTaskParams {
   userId: string;
   provider: string;
   model: string;
-  modality: TaskModality;
+  modality: string;
   input: Record<string, unknown>;
   parentTaskId?: string;
   workflowNodeId?: string;
@@ -72,7 +71,7 @@ async function createTask(params: CreateTaskParams): Promise<TaskHandle> {
       model: params.model,
       modality: params.modality,
       status: 'created',
-      input: params.input as any,
+      input: safeStringify(params.input),
       parentTaskId: params.parentTaskId,
       workflowNodeId: params.workflowNodeId,
     },
@@ -83,8 +82,8 @@ async function createTask(params: CreateTaskParams): Promise<TaskHandle> {
 
 async function updateTaskStatus(
   taskId: string,
-  status: TaskStatus,
-  extra?: Partial<Task>,
+  status: string,
+  extra?: any,
 ): Promise<TaskHandle> {
   const data: any = { status };
 
@@ -115,7 +114,7 @@ async function updateTaskOutput(
   const task = await prisma.task.update({
     where: { id: taskId },
     data: {
-      output: output as any,
+      output: safeStringify(output),
       ...(creditsCost !== undefined ? { creditsCost } : {}),
     },
   });
@@ -133,8 +132,8 @@ async function getTask(taskId: string): Promise<TaskHandle | null> {
 
 interface ListTasksParams {
   userId: string;
-  status?: TaskStatus;
-  modality?: TaskModality;
+  status?: string;
+  modality?: string;
   limit?: number;
   offset?: number;
 }

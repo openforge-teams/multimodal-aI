@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { AppLayout } from '@/components/AppLayout';
-import { trpc } from '@/lib/trpc-client';
+import { trpc } from '@/lib/trpc-provider';
 import {
   Image,
   Video,

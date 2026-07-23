@@ -1,12 +1,12 @@
 // Prisma Schema for DreamForge AI Platform
-// PostgreSQL 14+
+// SQLite (开发) / PostgreSQL 14+ (生产)
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -17,12 +17,11 @@ model User {
   email         String    @unique
   name          String?
   avatarUrl     String?
-  role          UserRole  @default(USER)
+  role          String    @default("USER")
   credits       Int       @default(0)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  // 关系
   sessions      Session[]
   apiKeys       ApiKey[]
   providers     UserProvider[]
@@ -34,13 +33,8 @@ model User {
   @@map("users")
 }
 
-enum UserRole {
-  USER
-  ADMIN
-}
-
 model Session {
-  id           String   @id @default(cuid())
+  id           String   @id
   userId       String
   expiresAt    DateTime
   createdAt    DateTime @default(now())
@@ -69,16 +63,16 @@ model ApiKey {
 model UserProvider {
   id             String   @id @default(cuid())
   userId         String
-  providerId     String   // 唯一标识，如 "my-sd-cluster"
+  providerId     String
   name           String
   baseUrl        String
-  protocol       ProviderProtocol
+  protocol       String   @default("openai")
   enabled        Boolean  @default(true)
   isPrimary      Boolean  @default(false)
-  llmModels      String[] @default([])
-  imageModels    String[] @default([])
-  videoModels    String[] @default([])
-  capabilities   Json     @default("{}")
+  llmModels      String   @default("[]")
+  imageModels    String   @default("[]")
+  videoModels    String   @default("[]")
+  capabilities   String   @default("{}")
   rateLimitRpm   Int      @default(60)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -88,12 +82,6 @@ model UserProvider {
 
   @@unique([userId, providerId])
   @@map("user_providers")
-}
-
-enum ProviderProtocol {
-  openai
-  apimart
-  native
 }
 
 model ProviderApiKey {
@@ -114,10 +102,10 @@ model Task {
   userId         String
   provider       String
   model          String
-  modality       TaskModality
-  status         TaskStatus    @default(created)
-  input          Json          @default("{}")
-  output         Json?
+  modality       String        @default("image")
+  status         String        @default("created")
+  input          String        @default("{}")
+  output         String?
   creditsCost    Int           @default(0)
   startedAt      DateTime?
   finishedAt     DateTime?
@@ -132,28 +120,8 @@ model Task {
 
   user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   assets         Asset[]
-  parentTask     Task?         @relation("TaskHierarchy", fields: [parentTaskId], references: [id])
-  childTasks     Task[]        @relation("TaskHierarchy")
 
-  @@index([userId, status])
-  @@index([status])
   @@map("tasks")
-}
-
-enum TaskModality {
-  llm
-  image
-  video
-}
-
-enum TaskStatus {
-  created
-  queued
-  running
-  succeeded
-  failed
-  retrying
-  cancelled
 }
 
 // ============ 资产系统 ============
@@ -161,7 +129,7 @@ enum TaskStatus {
 model Asset {
   id            String     @id @default(cuid())
   userId        String
-  type          AssetType
+  type          String     @default("image")
   url           String
   thumbnail     String?
   parentId      String?
@@ -169,30 +137,19 @@ model Asset {
   provider      String
   model         String
   prompt        String     @default("")
-  params        Json       @default("{}")
+  params        String     @default("{}")
   seed          Int?
   creditsCost   Int        @default(0)
   rootAssetId   String?
   version       Int        @default(1)
-  tags          String[]   @default([])
+  tags          String     @default("[]")
   isPublic      Boolean    @default(false)
   createdAt     DateTime   @default(now())
 
   user          User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   task          Task       @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  parent        Asset?     @relation("AssetVersionChain", fields: [parentId], references: [id])
-  children      Asset[]    @relation("AssetVersionChain")
-  rootAsset     Asset?     @relation("AssetRootChain", fields: [rootAssetId], references: [id])
-  rootChildren  Asset[]    @relation("AssetRootChain")
 
-  @@index([userId, type])
-  @@index([rootAssetId])
   @@map("assets")
-}
-
-enum AssetType {
-  image
-  video
 }
 
 // ============ 工作流系统 ============
@@ -202,13 +159,13 @@ model Workflow {
   userId      String
   name        String
   description String?
-  definition  Json          @default("{}")
+  definition  String        @default("{}")
   isTemplate  Boolean       @default(false)
   isPublic    Boolean       @default(false)
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
-  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
   executions  WorkflowExecution[]
 
   @@map("workflows")
@@ -218,9 +175,9 @@ model WorkflowExecution {
   id          String     @id @default(cuid())
   workflowId  String
   userId      String
-  status      TaskStatus @default(created)
-  input       Json       @default("{}")
-  output      Json?
+  status      String     @default("created")
+  input       String     @default("{}")
+  output      String?
   startedAt   DateTime?
   finishedAt  DateTime?
   createdAt   DateTime   @default(now())
@@ -236,41 +193,27 @@ model CreditTransaction {
   id          String              @id @default(cuid())
   userId      String
   amount      Int
-  type        CreditTransactionType
+  type        String              @default("usage")
   description String?
   taskId      String?
   createdAt   DateTime            @default(now())
 
-  @@index([userId])
   @@map("credit_transactions")
-}
-
-enum CreditTransactionType {
-  topup
-  usage
-  refund
-  subscription
 }
 
 model ModelPricing {
   id           String       @id @default(cuid())
   provider     String
   model        String
-  modality     TaskModality
-  pricingType  PricingType  @default(fixed)
+  modality     String       @default("image")
+  pricingType  String       @default("fixed")
   unitCost     Int          @default(0)
-  tiers        Json?
+  tiers        String?
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
 
   @@unique([provider, model])
   @@map("model_pricings")
-}
-
-enum PricingType {
-  fixed
-  tiered
-  lookup
 }
 
 // ============ 审计日志 ============
@@ -280,14 +223,13 @@ model AuditLog {
   userId    String
   action    String
   resource  String?
-  metadata  Json     @default("{}")
+  metadata  String   @default("{}")
   ipAddress String?
   userAgent String?
   createdAt DateTime @default(now())
 
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([userId, createdAt])
   @@map("audit_logs")
 }
 
@@ -296,21 +238,14 @@ model AuditLog {
 model ContentModeration {
   id          String                @id @default(cuid())
   assetId     String                @unique
-  status      ModerationStatus
+  status      String                @default("pending")
   flagged     Boolean               @default(false)
-  categories  String[]              @default([])
+  categories  String                @default("[]")
   confidence  Float?
-  metadata    Json                  @default("{}")
+  metadata    String                @default("{}")
   reviewedBy  String?
   reviewedAt  DateTime?
   createdAt   DateTime              @default(now())
 
   @@map("content_moderations")
-}
-
-enum ModerationStatus {
-  pending
-  approved
-  rejected
-  flagged
 }

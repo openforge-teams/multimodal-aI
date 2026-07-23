@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { AppLayout } from '@/components/AppLayout';
-import { trpc } from '@/lib/trpc-client';
+import { trpc } from '@/lib/trpc-provider';
 import {
   Plus,
   Settings,
@@ -35,7 +35,8 @@ export default function ProvidersPage() {
   const [editingProvider, setEditingProvider] = useState<any>(null);
   const utils = trpc.useUtils();
 
-  const { data: providers = [], isLoading } = trpc.provider.list.useQuery();
+  const { data, isLoading } = trpc.provider.list.useQuery();
+  const providers = Array.isArray(data) ? data : [];
   const createProvider = trpc.provider.create.useMutation({
     onSuccess: () => {
       utils.provider.list.invalidate();

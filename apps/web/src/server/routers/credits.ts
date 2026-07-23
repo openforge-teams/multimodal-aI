@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { createTRPCRouter, protectedProcedure } from '../trpc';
+import { createTRPCRouter, protectedProcedure } from '../../lib/trpc';
 import { prisma } from '@dreamforge/db';
 import { getBalance, getUsage as getCreditsUsage } from '@dreamforge/billing';
 

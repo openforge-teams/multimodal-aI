@@ -10,8 +10,6 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "bullmq": "^5.0.0",
-    "ioredis": "^5.3.0",
     "@dreamforge/types": "workspace:*"
   },
   "devDependencies": {

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { AppLayout } from '@/components/AppLayout';
-import { trpc } from '@/lib/trpc-client';
+import { trpc } from '@/lib/trpc-provider';
 import {
   Sparkles,
   Image,

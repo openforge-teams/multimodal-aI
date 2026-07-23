@@ -1,8 +1,4 @@
-import { Queue, Worker, QueueEvents, type Job } from 'bullmq';
-import Redis from 'ioredis';
 import type { TaskModality } from '@dreamforge/types';
-
-let connection: Redis | null = null;
 
 const QUEUE_NAMES = {
   image: 'dreamforge:image-tasks',
@@ -10,18 +6,6 @@ const QUEUE_NAMES = {
   llm: 'dreamforge:llm-tasks',
   poll: 'dreamforge:poll-tasks',
 } as const;
-
-function getConnection(): Redis {
-  if (connection) return connection;
-
-  const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
-  connection = new Redis(redisUrl, {
-    maxRetriesPerRequest: null,
-    enableReadyCheck: false,
-  });
-
-  return connection;
-}
 
 export interface TaskPayload {
   taskId: string;
@@ -33,123 +17,133 @@ export interface TaskPayload {
   requestType: string;
 }
 
-const queues: Record<string, Queue<TaskPayload>> = {};
-const workers: Record<string, Worker<TaskPayload>> = {};
-const queueEvents: Record<string, QueueEvents> = {};
+export interface Job<T = TaskPayload> {
+  id: string;
+  data: T;
+  name: string;
+}
+
+type Handler = (job: Job<TaskPayload>) => Promise<void>;
+
+// 内存队列存储
+const queues: Record<string, TaskPayload[]> = {};
+const workers: Record<string, Handler> = {};
+const delayedJobs: Map<string, { payload: TaskPayload; runAt: number }> = new Map();
+let processing = false;
 
 function getQueueName(modality: TaskModality): string {
   return QUEUE_NAMES[modality] || QUEUE_NAMES.image;
 }
 
-export function getQueue(modality: TaskModality): Queue<TaskPayload> {
-  const name = getQueueName(modality);
+function ensureQueue(name: string): TaskPayload[] {
   if (!queues[name]) {
-    queues[name] = new Queue<TaskPayload>(name, {
-      connection: getConnection(),
-      defaultJobOptions: {
-        attempts: 3,
-        backoff: {
-          type: 'exponential',
-          delay: 2000,
-        },
-        removeOnComplete: true,
-        removeOnFail: 100,
-      },
-    });
+    queues[name] = [];
   }
   return queues[name];
+}
+
+async function processQueue(): Promise<void> {
+  if (processing) return;
+  processing = true;
+
+  try {
+    // 处理延迟任务
+    const now = Date.now();
+    for (const [id, job] of delayedJobs) {
+      if (job.runAt <= now) {
+        const queueName = getQueueName(job.payload.modality);
+        ensureQueue(queueName).push(job.payload);
+        delayedJobs.delete(id);
+      }
+    }
+
+    // 处理队列中的任务
+    for (const [queueName, queue] of Object.entries(queues)) {
+      const handler = workers[queueName];
+      if (!handler) continue;
+
+      while (queue.length > 0) {
+        const payload = queue.shift()!;
+        const job: Job<TaskPayload> = {
+          id: payload.taskId,
+          data: payload,
+          name: `task:${payload.taskId}`,
+        };
+
+        try {
+          await handler(job);
+        } catch (error) {
+          console.error(`[Queue] Error processing job ${job.id}:`, error);
+        }
+      }
+    }
+  } finally {
+    processing = false;
+  }
+}
+
+// 定时处理队列
+setInterval(() => {
+  processQueue().catch(console.error);
+}, 500);
+
+export function getQueue(modality: TaskModality) {
+  const name = getQueueName(modality);
+  ensureQueue(name);
+  return {
+    name,
+    add: async (name: string, payload: TaskPayload, opts?: { jobId?: string }) => {
+      ensureQueue(getQueueName(modality)).push(payload);
+      return { id: opts?.jobId || payload.taskId };
+    },
+  };
 }
 
 export async function enqueueTask(
   payload: TaskPayload,
   priority?: number,
 ): Promise<string> {
-  const queue = getQueue(payload.modality);
-  const job = await queue.add(`task:${payload.taskId}`, payload, {
-    jobId: payload.taskId,
-    priority,
-  });
-  return job.id as string;
+  const queueName = getQueueName(payload.modality);
+  ensureQueue(queueName).push(payload);
+  return payload.taskId;
 }
 
 export function createWorker(
   modality: TaskModality,
-  handler: (job: Job<TaskPayload>) => Promise<void>,
-): Worker<TaskPayload> {
+  handler: Handler,
+): { name: string } {
   const name = getQueueName(modality);
-  if (workers[name]) {
-    return workers[name];
-  }
-
-  const concurrency = parseInt(
-    process.env.TASK_MAX_CONCURRENCY || '10',
-    10,
-  );
-
-  workers[name] = new Worker<TaskPayload>(name, handler, {
-    connection: getConnection(),
-    concurrency,
-  });
-
-  // 创建队列事件
-  if (!queueEvents[name]) {
-    queueEvents[name] = new QueueEvents(name, {
-      connection: getConnection(),
-    });
-  }
-
-  return workers[name];
+  workers[name] = handler;
+  return { name };
 }
 
-export function createPollWorker(
-  handler: (job: Job<TaskPayload>) => Promise<void>,
-): Worker<TaskPayload> {
+export function createPollWorker(handler: Handler): { name: string } {
   const name = QUEUE_NAMES.poll;
-  if (workers[name]) {
-    return workers[name];
-  }
-
-  workers[name] = new Worker<TaskPayload>(name, handler, {
-    connection: getConnection(),
-    concurrency: 20,
-  });
-
-  if (!queueEvents[name]) {
-    queueEvents[name] = new QueueEvents(name, {
-      connection: getConnection(),
-    });
-  }
-
-  return workers[name];
+  workers[name] = handler;
+  return { name };
 }
 
 export async function enqueuePollTask(
   payload: TaskPayload,
   delay: number = 5000,
 ): Promise<string> {
-  const name = QUEUE_NAMES.poll;
-  if (!queues[name]) {
-    queues[name] = new Queue<TaskPayload>(name, {
-      connection: getConnection(),
-    });
-  }
-
-  const job = await queues[name].add(`poll:${payload.taskId}`, payload, {
-    jobId: `poll:${payload.taskId}`,
-    delay,
-    removeOnComplete: true,
-    removeOnFail: true,
+  const id = `poll:${payload.taskId}`;
+  delayedJobs.set(id, {
+    payload: { ...payload, modality: payload.modality },
+    runAt: Date.now() + delay,
   });
-
-  return job.id as string;
+  // 使用原始模态的队列名
+  return id;
 }
 
 export async function cancelJob(taskId: string, modality: TaskModality): Promise<void> {
-  const queue = getQueue(modality);
-  const job = await queue.getJob(taskId);
-  if (job) {
-    await job.remove();
+  const queueName = getQueueName(modality);
+  const queue = queues[queueName];
+  if (queue) {
+    const idx = queue.findIndex((j) => j.taskId === taskId);
+    if (idx >= 0) queue.splice(idx, 1);
   }
+  delayedJobs.delete(`poll:${taskId}`);
 }
 
 export async function getQueueStats(modality: TaskModality): Promise<{
@@ -159,29 +153,20 @@ export async function getQueueStats(modality: TaskModality): Promise<{
   failed: number;
   delayed: number;
 }> {
-  const queue = getQueue(modality);
-  const [waiting, active, completed, failed, delayed] = await Promise.all([
-    queue.getWaitingCount(),
-    queue.getActiveCount(),
-    queue.getCompletedCount(),
-    queue.getFailedCount(),
-    queue.getDelayedCount(),
-  ]);
-
-  return { waiting, active, completed, failed, delayed };
+  const queueName = getQueueName(modality);
+  return {
+    waiting: queues[queueName]?.length || 0,
+    active: 0,
+    completed: 0,
+    failed: 0,
+    delayed: Array.from(delayedJobs.values()).filter(
+      (j) => getQueueName(j.payload.modality) === queueName,
+    ).length,
+  };
 }
 
 export async function closeAll(): Promise<void> {
-  await Promise.all([
-    ...Object.values(queues).map((q) => q.close()),
-    ...Object.values(workers).map((w) => w.close()),
-    ...Object.values(queueEvents).map((e) => e.close()),
-  ]);
-
-  if (connection) {
-    await connection.quit();
-    connection = null;
-  }
+  // 内存队列不需要清理
 }
 
 export { QUEUE_NAMES };

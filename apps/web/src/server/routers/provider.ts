@@ -1,14 +1,25 @@
 import { z } from 'zod';
-import { createTRPCRouter, protectedProcedure } from '../trpc';
+import { createTRPCRouter, protectedProcedure } from '../../lib/trpc';
 import { prisma } from '@dreamforge/db';
 import { normalizeProvider, validateProvider } from '@dreamforge/providers';
 import type { ProviderCapabilities } from '@dreamforge/types';
+
+function safeParse<T = any>(value: string | null | undefined, fallback: T): T {
+  if (!value) return fallback;
+  try { return JSON.parse(value) as T; } catch { return fallback; }
+}
+
+function safeStringify(value: any): string {
+  try { return JSON.stringify(value); } catch { return '[]'; }
+}
+
 
 export const providerRouter = createTRPCRouter({
   list: protectedProcedure.query(async ({ ctx }) => {
     const providers = await prisma.userProvider.findMany({
       where: { userId: ctx.user.id },
       orderBy: [{ isPrimary: 'desc' }, { createdAt: 'asc' }],
+      include: { apiKey: true },
     });
 
     return providers.map((p) => ({
@@ -18,10 +29,10 @@ export const providerRouter = createTRPCRouter({
       protocol: p.protocol,
       enabled: p.enabled,
       primary: p.isPrimary,
-      llm_models: p.llmModels,
-      image_models: p.imageModels,
-      video_models: p.videoModels,
-      capabilities: p.capabilities,
+      llm_models: safeParse<string[]>(p.llmModels, []),
+      image_models: safeParse<string[]>(p.imageModels, []),
+      video_models: safeParse<string[]>(p.videoModels, []),
+      capabilities: safeParse<Record<string, any>>(p.capabilities, {}),
       rate_limit_rpm: p.rateLimitRpm,
       has_api_key: !!p.apiKey,
       created_at: p.createdAt,
@@ -77,10 +88,10 @@ export const providerRouter = createTRPCRouter({
           baseUrl: input.base_url,
           protocol: input.protocol,
           isPrimary: input.is_primary,
-          llmModels: input.llm_models,
-          imageModels: input.image_models,
-          videoModels: input.video_models,
-          capabilities: input.capabilities as any,
+          llmModels: safeStringify(input.llm_models),
+          imageModels: safeStringify(input.image_models),
+          videoModels: safeStringify(input.video_models),
+          capabilities: safeStringify(input.capabilities),
           apiKey: {
             create: {
               encryptedKey: input.api_key, // 生产环境应加密
@@ -129,10 +140,10 @@ export const providerRouter = createTRPCRouter({
       if (input.name !== undefined) updateData.name = input.name;
       if (input.base_url !== undefined) updateData.baseUrl = input.base_url;
       if (input.protocol !== undefined) updateData.protocol = input.protocol;
-      if (input.llm_models !== undefined) updateData.llmModels = input.llm_models;
-      if (input.image_models !== undefined) updateData.imageModels = input.image_models;
-      if (input.video_models !== undefined) updateData.videoModels = input.video_models;
-      if (input.capabilities !== undefined) updateData.capabilities = input.capabilities;
+      if (input.llm_models !== undefined) updateData.llmModels = safeStringify(input.llm_models);
+      if (input.image_models !== undefined) updateData.imageModels = safeStringify(input.image_models);
+      if (input.video_models !== undefined) updateData.videoModels = safeStringify(input.video_models);
+      if (input.capabilities !== undefined) updateData.capabilities = safeStringify(input.capabilities);
       if (input.enabled !== undefined) updateData.enabled = input.enabled;
       if (input.is_primary !== undefined) updateData.isPrimary = input.is_primary;
 
